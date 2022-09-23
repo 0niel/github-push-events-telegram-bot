@@ -26,39 +26,29 @@ app.add_middleware(
 )
 
 
-@app.post("/github/repository/webhook/{}/".format(config.GITHUB_WEBHOOK_SECRET))
+@app.post(f"/github/repository/webhook/{config.GITHUB_WEBHOOK_SECRET}/")
 def receive_github_repository_webhook(payload: PushWebhookPayload):
-    message = "New push in repository <a href='{}'>{}</a>".format(
-        payload.repository.html_url, escape_html(payload.repository.full_name)
-    )
+    message = f"New push in repository <a href='{payload.repository.html_url}'>{escape_html(payload.repository.full_name)}</a>"
+
 
     if payload.sender is not None:
-        message += " from <a href='{}'>{}</a>".format(
-            payload.sender.html_url, escape_html(payload.sender.login)
-        )
+        message += f" from <a href='{payload.sender.html_url}'>{escape_html(payload.sender.login)}</a>"
+
 
     if len(payload.commits) > 0:
         message += "\n<b>Commits:</b>"
         for commit in payload.commits:
-            message += "\n<a href='{}'>{}</a>".format(
-                commit.url, escape_html(commit.id)
-            )
-            message += "\n  <i>Message:</i> {}".format(commit.message)
+            message += f"\n<a href='{commit.url}'>{escape_html(commit.id)}</a>"
+            message += f"\n  <i>Message:</i> {commit.message}"
 
             if len(commit.added) > 0:
-                message += "\n  <i>Added:</i> {}".format(
-                    escape_html(", ".join(commit.added))
-                )
+                message += f'\n  <i>Added:</i> {escape_html(", ".join(commit.added))}'
 
             if len(commit.removed) > 0:
-                message += "\n  <i>Removed:</i> {}".format(
-                    escape_html(", ".join(commit.removed))
-                )
+                message += f'\n  <i>Removed:</i> {escape_html(", ".join(commit.removed))}'
 
             if len(commit.modified) > 0:
-                message += "\n  <i>Modified:</i> {}".format(
-                    escape_html(", ".join(commit.modified))
-                )
+                message += f'\n  <i>Modified:</i> {escape_html(", ".join(commit.modified))}'
 
         bot.send_message(
             chat_id=config.TELEGRAM_CHAT_ID, parse_mode="HTML", text=message
